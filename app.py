@@ -14,7 +14,6 @@ def get_db_connection():
 def create_table():
     conn = get_db_connection()
 
-    # Create the table if it does not exist
     conn.execute("""
         CREATE TABLE IF NOT EXISTS students (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -23,7 +22,6 @@ def create_table():
         )
     """)
 
-    # Remove the old email requirement while preserving existing records
     columns = [
         row["name"]
         for row in conn.execute("PRAGMA table_info(students)").fetchall()
@@ -57,11 +55,12 @@ def home():
     return "Welcome to Flask Web Server"
 
 
+# Student Registration
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
-        name = request.form.get("name")
-        department = request.form.get("department")
+        name = request.form.get("name", "").strip()
+        department = request.form.get("department", "").strip()
 
         if not name or not department:
             return "Name and Department are required", 400
@@ -85,6 +84,61 @@ def register():
     return render_template("index.html")
 
 
+# Student Login
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        department = request.form.get("department", "").strip()
+
+        if not name or not department:
+            return "Name and Department are required", 400
+
+        conn = get_db_connection()
+
+        student = conn.execute(
+            "SELECT * FROM students WHERE name = ? AND department = ?",
+            (name, department)
+        ).fetchone()
+
+        conn.close()
+
+        if student:
+            return f"""
+            <h2>Student Login Successful</h2>
+            <p>Welcome, {student['name']}!</p>
+            <p>Department: {student['department']}</p>
+            <a href="/students">View Student Information</a>
+            """
+
+        return "Invalid name or department. Please register first.", 401
+
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Student Login</title>
+    </head>
+    <body>
+        <h2>Student Login</h2>
+
+        <form method="POST">
+            <label>Name:</label>
+            <input type="text" name="name" required>
+            <br><br>
+
+            <label>Department:</label>
+            <input type="text" name="department" required>
+            <br><br>
+
+            <button type="submit">Login</button>
+        </form>
+    </body>
+    </html>
+    """
+
+
+# View All Students
 @app.route("/students")
 def students():
     conn = get_db_connection()
@@ -101,20 +155,21 @@ def students():
     )
 
 
+# Update Student Information
 @app.route("/update/<int:student_id>", methods=["GET", "POST"])
 def update_student(student_id):
     conn = get_db_connection()
 
     if request.method == "POST":
-        name = request.form.get("name")
-        department = request.form.get("department")
+        name = request.form.get("name", "").strip()
+        department = request.form.get("department", "").strip()
 
         if not name or not department:
             conn.close()
             return "Name and Department are required", 400
 
         cursor = conn.execute(
-            "UPDATE students SET name=?, department=? WHERE id=?",
+            "UPDATE students SET name = ?, department = ? WHERE id = ?",
             (name, department, student_id)
         )
 
@@ -128,7 +183,7 @@ def update_student(student_id):
         return redirect(url_for("students"))
 
     student = conn.execute(
-        "SELECT * FROM students WHERE id=?",
+        "SELECT * FROM students WHERE id = ?",
         (student_id,)
     ).fetchone()
 
@@ -140,12 +195,13 @@ def update_student(student_id):
     return render_template("update.html", student=student)
 
 
+# Delete Student
 @app.route("/delete/<int:student_id>", methods=["POST"])
 def delete_student(student_id):
     conn = get_db_connection()
 
     cursor = conn.execute(
-        "DELETE FROM students WHERE id=?",
+        "DELETE FROM students WHERE id = ?",
         (student_id,)
     )
 
