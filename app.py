@@ -106,8 +106,8 @@ def update_student(student_id):
     conn = get_db_connection()
 
     if request.method == "POST":
-        name = request.form.get("name")
-        department = request.form.get("department")
+        name = request.form.get("name", "").strip()
+        department = request.form.get("department", "").strip()
 
         if not name or not department:
             conn.close()
