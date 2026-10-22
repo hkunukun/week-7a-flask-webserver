@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Update Student</title>
+</head>
+<body>
+    <h2>Update Student</h2>
+
+    <form action="/update/{{ student.id }}" method="POST">
+        <label>Name:</label>
+        <input type="text" name="name"
+               value="{{ student.name }}" required>
+        <br><br>
+
+        <label>Department:</label>
+        <input type="text" name="department"
+               value="{{ student.department }}" required>
+        <br><br>
+
+        <button type="submit">Update</button>
+    </form>
+
+    <br>
+    <a href="/students">Back to Students</a>
+</body>
+</html>
