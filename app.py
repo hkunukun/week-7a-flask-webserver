@@ -54,7 +54,7 @@ def create_table():
 def home():
     return "Welcome to Flask Web Server"
 
-
+# Feature branch: Student Registration
 # Student Registration
 @app.route("/register", methods=["GET", "POST"])
 def register():
